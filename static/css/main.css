@@ -1,0 +1,75 @@
+
+h1,h2,h3, .title , header {
+    font-family: 'Raleway', sans-serif !important;
+}
+
+
+
+.pop-main {
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+    url('../images/popopinion.jpg') no-repeat 50% 50% !important;
+    background-size: cover !important;
+    position: relative;
+
+
+}
+
+
+.pop-main.segment {
+
+    background-size: cover !important;
+    min-height: 100vh;
+    margin: 0;
+
+}
+
+.pop-header-content {
+    position: absolute;
+    top: 80%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    min-width: 80%;
+}
+
+
+
+
+
+h1.ui.header {
+    font-size: 5em;
+    font-weight: 200;
+    letter-spacing: 5px;
+
+}
+
+h1.ui.header::first-letter {
+    color: #e74c3c !important;
+
+
+}
+
+h2.ui.header {
+    font-size: 2em;
+    font-weight: 200;
+    letter-spacing: 5px;
+}
+
+.primary {
+    background-color: #396afc !important;
+}
+
+.primary:hover {
+    background-color: #7096FF !important;
+}
+
+.pop-button {
+    font-weight: 300 !important;
+    margin-top: 25px !important;
+}
+
+
+
+
+
+
+

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Delete Poll{% endblock %}
+{% block content %}
+    <div class="ui container">
+        {% if messages %}
+            {% for message in messages %}
+                {% if 'warning' in message.tags %}
+                    <div class="ui negative message">
+                        <div class="header">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        {% if not messages %}
+            <div class="ui segment">
+                <h3>Delete Poll??</h3>
+                <form action="" method="POST" class="ui form">
+                    {% csrf_token %}
+                    <h3>Are you sure you want to delete - '{{ object.question }}'</h3>
+                    <button type="submit" class="ui button danger mt-5">Delete</button>
+                    <a href="{% url 'polls:index' %}" type="submit" class="ui button primary mt-5">Cancel</a>
+                </form>
+            </div>
+
+        {% endif %}
+    </div>
+
+{% endblock %}

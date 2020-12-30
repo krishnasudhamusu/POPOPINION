@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+    <script src="https://kit.fontawesome.com/1823d4e761.js" crossorigin="anonymous"></script>
+
+{% endblock %}
+
+{% block content %}
+    <div class="ui container">
+        <div class="ui grid">
+            <div class="twelve wide column">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="{{ message.tags }}">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <h3>Add New Poll :</h3>
+                <div class="ui segment">
+                    {% if poll_added %}
+                        <div class="ui green message">Poll Added</div>
+                    {% endif %}
+                    <form action="" method="POST" class="ui form">
+                        {% csrf_token %}
+                        {% for field in p_form %}
+                            <div class="form-group">
+                                {{ field.errors }}
+                                <strong>{{ field.label_tag }}</strong>
+                                {{ field }}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="ui button positive mt-5 w-full" name="submit_p_form">Add
+                            Poll &nbsp;&nbsp;<i class="checkmark icon"></i>
+                        </button>
+
+                    </form>
+                </div>
+                <h3>Poll Questions :</h3>
+                {% for question in latest_question_list %}
+                    <div class="ui fluid card">
+                        <div class="content">
+                            <div class="right floated meta">
+                                <div class="ui grid">
+                                    <div class="row">
+                                        {% ifequal request.user question.author.user %}
+                                            <a href="{% url 'polls:poll-update' question.id %}">
+                                                <button class="ui button small bwhite-lg"><i
+                                                        class="pencil alternate icon">Update</i></button>
+                                            </a>
+                                            <a href="{% url 'polls:poll-delete' question.id %}">
+                                                <button class="ui button small bwhite-lg"><i
+                                                        class="trash alternate icon">Delete</i></button>
+                                            </a>
+                                        {% else %}
+                                        {% endifequal %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ui left aligned grid">
+                                <div class="row">
+                                    <div class="ui relaxed list">
+                                        <div class="item">
+                                            {% ifnotequal request.user question.author.user %}
+                                                &nbsp; &nbsp;
+                                            {% endifnotequal %}
+
+
+
+                                            <img class="ui middle aligned mini circular image"
+                                                 src="{{ question.author.avatar.url }}">
+
+                                            <div class="content">
+                                                <a class="header" href="">
+                                                    <h4>{{ question.author.user.username }}</h4>
+                                                </a>
+                                                <div class="description">
+                                                    <small>posted : {{ question.created|timesince }} ago</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            {% if userr not in question.voted_users.all %}
+                                <form action="{% url 'polls:vote-poll' %}" method="post" class="ui form">
+                                    {% csrf_token %}
+                                    <p class="ui header">{{ question.question }}</p>
+                                    <input type="hidden" name="poll_id" value="{{ question.id }}">
+                                    {% for choice in question.choice_set.all %}
+                                        <div class="grouped fields">
+                                            <div class="field">
+                                                {% if choice.choice_text %}
+                                                    <div class="ui radio checkbox">
+
+                                                        <input type="radio" name="choicer" class="form-check-input"
+                                                               id="choice{{ forloop.counter }}"
+                                                               value="{{ choice.id }}"/>
+                                                        <label for="choice{{ forloop.counter }}"><b>{{ choice.choice_text }}</b></label>
+
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                    {% endfor %}
+                                    <button type="submit" value="voter" name="submit_v_form"
+                                            class="ui primary basic tiny button">Vote &nbsp;&nbsp;<i
+                                            class="hand point up icon"></i></button>
+                                </form>
+                            {% else %}
+                                <p class="ui header">{{ question.question }}</p>
+                                <input type="hidden" name="poll_id" value="{{ question.id }}">
+                                <div class="ui selection list">
+                                    {% for choice in question.get_results_dict %}
+                                        {% if choice.text %}
+                                            <div class="item">
+                                                <div class="header">
+                                                    <strong>{{ choice.text }}
+                                                        <div class="ui right floated blue label tiny ">{{ choice.num_votes }}
+                                                            vote{{ choice.num_votes|pluralize }}</div>
+
+                                                    </strong>
+                                                </div>
+
+                                                <div class="ui progress success">
+                                                    <div class="bar" style="width: {{ choice.percentage }}%;">
+                                                        <div class="progress">
+                                                            <div class="label">
+                                                                {{ choice.percentage }}%
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+
+                            {% endif %}
+
+
+                            <div class="left float-left">
+                                <form action="{% url 'polls:like-poll-view' %}" method="POST"
+                                      class="like-form"
+                                      id="{{ question.id }}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="poll_id" value="{{ question.id }}">
+
+
+                                    <button type="submit" class="ui small labeled button" tabindex="0">
+                                        <div class="tiny ui primary button like-btn{{ question.id }}">
+                                            {% if userr not in obj.liked.all %}
+                                                <i class="thumbs up icon"></i>Like
+                                            {% else %}
+                                                <i class="thumbs down icon"></i>Unlike
+                                            {% endif %}
+                                        </div>
+                                        <div class="ui basic blue left pointing small label like-count{{ question.id }}">{{ question.num_likes }}</div>
+                                    </button>
+                                    <div class="ui tiny labeled button" tabindex="0">
+                                        <div class="tiny ui basic blue button">
+                                            <i class="comment icon"></i>Comments
+                                        </div>
+                                        <div class="ui basic blue left pointing label">{{ question.num_comments }}</div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="extra content">
+                            <div class="mb-5">
+
+                            </div>
+                            <button class="cmt_btn ui button mb-5">hide comments</button>
+                            <div class="comment-box">
+                                {% if question.comment_set.all %}
+                                    {% for comment in question.comment_set.all %}
+                                        <div class="ui segment mb-5">
+                                            <img class="ui avatar image" src="{{ comment.user.avatar.url }}">
+                                            <span>{{ comment.user }}</span>
+                                            <div class="mt-5">{{ comment.body }}</div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            <form action="" method="POST" class="ui fluid form">
+                                {% csrf_token %}
+                                <input type="hidden" name="poll_id" value="{{ question.id }}">
+                                {{ comment_form.as_p }}
+                                <button type="submit" class="ui primary small button mt-5 w-full"
+                                        name="submit_comment_form">Comment
+                                </button>
+                            </form>
+
+
+                        </div>
+
+                    </div>
+                {% endfor %}
+            </div>
+
+
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            let display = false
+            $(".cmt_btn").click(function () {
+                if (display === false) {
+                    $(this).next(".comment-box").show("slow");
+                    display = true
+                } else {
+                    $(this).next(".comment-box").hide("slow");
+                    display = false
+                }
+            });
+
+            $('.like-form').submit(function (e) {
+                e.preventDefault()
+
+
+                const poll_id = $(this).attr('id')
+
+                const likeText = $(`.like-btn${poll_id}`).text()
+                const trim = $.trim(likeText)
+
+                const url = $(this).attr('action')
+
+                let res;
+                const likes = $(`.like-count${poll_id}`).text()
+                const trimCount = parseInt(likes)
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: {
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                        'poll_id': poll_id,
+                    },
+                    success: function (response) {
+                        if (trim === 'Unlike') {
+                            $(`.like-btn${poll_id}`).text('Like')
+                            res = trimCount - 1
+
+                        } else {
+                            $(`.like-btn${poll_id}`).text('Unlike')
+                            res = trimCount + 1
+                        }
+
+                        $(`.like-count${poll_id}`).text(res)
+                    },
+                    error: function (response) {
+                        console.log('error', response)
+
+                    }
+
+                })
+
+
+            })
+        });
+    </script>
+{% endblock scripts %}

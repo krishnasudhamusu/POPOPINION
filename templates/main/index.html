@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{{ block.super }}
+{% block custom_css %}
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@200;300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+{% endblock %}
+{% block title %}
+    POPOPINION
+{% endblock %}
+
+{% block content %}
+    <div class="ui center aligned segment pop-main">
+
+            <div class="ui pop-header-content container">
+                <h1 class="ui inverted header">Welcome to POPOPINION</h1>
+                <h2 class="ui inverted header">Your opinion matters...</h2>
+                {% if request.user.is_aunthenticated %}
+                    <a href="{% url 'polls:index' %}"
+                       class="ui huge primary right label icon button pop-button">Get
+                        Started &nbsp;<i
+                                class="arrow circle right icon"></i></a>
+                {% else %}
+                    <a href="{% url 'account_login' %}"
+                       class="ui huge primary right label icon button pop-button">Get
+                        Started &nbsp;<i
+                                class="arrow circle right icon"></i></a>
+                {% endif %}
+
+
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}

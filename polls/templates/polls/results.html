@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 m-auto">
+                <script src="https://cdn.zingchart.com/zingchart.min.js"></script>
+                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+                <h1 class="mb-5 text-center">{{ ques.question }}</h1>
+
+                <ul class="list-group mb-5">
+                    {% for choice in new_results %}
+                        <li class="list-group-item">
+                            <strong>{{ choice.text }}
+                                <span class="badge badge-success float-right">{{ choice.num_votes }}
+                        vote{{ choice.num_votes|pluralize }}</span>
+                            </strong>
+                            <div class="progress mb-2">
+                                <div class="progress-bar" role="progressbar"
+                                     style="width: {{ choice.percentage }}%;">{{ choice.percentage }}%
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <div id="myChart"></div>
+
+                <a class="btn btn-secondary" href="{% url 'polls:index' %}">Back To Polls</a>
+                <a class="btn btn-dark" href="{% url 'polls:detail' question.id %}">Vote Again?</a>
+
+                <script>
+
+                    var state = {
+                        'items': [],
+                        'values': [],
+                    }
+
+                    var objId = "{{question.id}}"
+
+                    var dataURL = `/polls/resultsdata/${objId}/`
+                    $.ajax({
+                        method: 'GET',
+                        url: dataURL,
+                        success: function (response) {
+
+                            for (var i in response) {
+
+                                var key = Object.keys(response[i])[0]
+                                var value = Object.values(response[i])[0]
+
+                                state.items.push(key)
+                                state.values.push(value)
+                            }
+
+
+                            buildChart()
+
+                        }
+                    })
+
+                    function buildChart() {
+                        var chartData = {
+                            "type": "bar",
+                            "scale-x": {
+                                "values": state.items
+                            },
+                            "series": [
+                                {
+                                    "values": state.values
+                                }
+                            ]
+                        }
+
+
+                        zingchart.render({
+                            id: "myChart",
+                            data: chartData,
+                        });
+                    }
+
+
+                </script>
+            </div>
+        </div>
+    </div>
+{% endblock %}

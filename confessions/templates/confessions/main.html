@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}
+    Confessions
+{% endblock %}
+
+{% block content %}
+    <div class="ui container">
+        <div class="ui grid">
+
+            <div class="eleven wide column">
+                {% for obj in qs %}
+                    <div class="ui fluid card">
+                        <div class="content">
+                            <div class="right floated meta">
+                                <div class="ui grid">
+                                    <div class="row">
+                                        {% ifequal request.user obj.author.user %}
+                                            <a href="{% url 'confessions:confession-update' obj.pk %}">
+                                                <button class="ui button small bwhite-lg"><i
+                                                        class="pencil alternate icon">Edit</i></button>
+                                            </a>
+                                            <a href="{% url 'confessions:confession-delete' obj.pk %}">
+                                                <button class="ui button small bwhite-lg"><i
+                                                        class="trash alternate icon">Delete</i></button>
+                                            </a>
+                                        {% else %}
+                                        {% endifequal %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ui left aligned grid">
+                                <div class="row">
+                                    <div class="ui relaxed list">
+                                        <div class="item">
+                                            {% ifnotequal request.user obj.author.user %}
+                                                &nbsp; &nbsp;
+                                            {% endifnotequal %}
+
+
+                                            <img class="ui middle aligned mini circular image"
+                                                 src="{{ obj.author.avatar.url }}">
+
+                                            <div class="content">
+                                                <a class="header" href=""><h4>{{ obj.title }}</h4></a>
+                                                <div class="description">
+                                                    <small>posted by : <a><b>{{ obj.author.user.username }}</b></a>
+                                                        - {{ obj.created|timesince }} ago</small>
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ui fluid image">
+                            {% if obj.image %}
+                                <img src="{{ obj.image.url }}">
+                            {% endif %}
+                        </div>
+                        <div class="content">
+                            <p>{{ obj.content }}</p>
+                            <div class="left float-left">
+                                <form action="{% url 'confessions:like-confession-view' %}" method="POST"
+                                      class="like-form"
+                                      id="{{ obj.id }}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="confession_id" value="{{ obj.id }}">
+
+
+                                    <button type="submit" class="ui small labeled button" tabindex="0">
+                                        <div class="tiny ui primary button like-btn{{ obj.id }}">
+                                            {% if profile not in obj.liked.all %}
+                                                <i class="thumbs up icon"></i>Like
+                                            {% else %}
+                                                <i class="thumbs down icon"></i>Unlike
+                                            {% endif %}
+                                        </div>
+                                        <div class="ui basic blue left pointing small label like-count{{ obj.id }}">{{ obj.num_likes }}</div>
+                                    </button>
+                                    <div class="ui tiny labeled button" tabindex="0">
+                                        <div class="tiny ui basic blue button">
+                                            <i class="comment icon"></i>Comments
+                                        </div>
+                                        <div class="ui basic blue left pointing label">{{ obj.num_comments }}</div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="extra content">
+                            <div class="mb-5">
+
+                            </div>
+                            <button class="cmt_btn ui button mb-5">hide comments</button>
+                            <div class="comment-box">
+                                {% if obj.comment_set.all %}
+                                    {% for comment in obj.comment_set.all %}
+                                        <div class="ui segment mb-5">
+                                            <img class="ui avatar image" src="{{ comment.user.avatar.url }}">
+                                            <span>{{ comment.user }}</span>
+                                            <div class="mt-5">{{ comment.body }}</div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            <form action="" method="POST" class="ui fluid form">
+                                {% csrf_token %}
+                                <input type="hidden" name="confession_id" value="{{ obj.id }}">
+                                {{ comment_form.as_p }}
+                                <button type="submit" class="ui primary small button mt-5 w-full"
+                                        name="submit_comment_form">Comment
+                                </button>
+                            </form>
+
+
+                        </div>
+
+                    </div>
+                {% endfor %}
+
+            </div>
+            <div class="five wide column">
+                <h3>Add New Confession :</h3>
+                <div class="ui segment">
+                    {% if confession_added %}
+                        <div class="ui green message">Confession Added</div>
+                    {% endif %}
+                    <form action="" method="POST" class="ui form" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ c_form.as_p }}
+                        <button type="submit" class="ui button positive mt-5 w-full" name="submit_c_form">Add
+                            Confession
+                        </button>
+
+                    </form>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            let display = false
+            $(".cmt_btn").click(function () {
+                if (display === false) {
+                    $(this).next(".comment-box").show("slow");
+                    display = true
+                } else {
+                    $(this).next(".comment-box").hide("slow");
+                    display = false
+                }
+            });
+
+            $('.like-form').submit(function (e) {
+                e.preventDefault()
+
+
+                const confession_id = $(this).attr('id')
+
+                const likeText = $(`.like-btn${confession_id}`).text()
+                const trim = $.trim(likeText)
+
+                const url = $(this).attr('action')
+
+                let res;
+                const likes = $(`.like-count${confession_id}`).text()
+                const trimCount = parseInt(likes)
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: {
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                        'confession_id': confession_id,
+                    },
+                    success: function (response) {
+                        if (trim === 'Unlike') {
+                            $(`.like-btn${confession_id}`).text('Like')
+                            res = trimCount - 1
+
+                        } else {
+                            $(`.like-btn${confession_id}`).text('Unlike')
+                            res = trimCount + 1
+                        }
+
+                        $(`.like-count${confession_id}`).text(res)
+                    },
+                    error: function (response) {
+                        console.log('error', response)
+
+                    }
+
+                })
+
+
+            })
+        });
+    </script>
+{% endblock scripts %}
